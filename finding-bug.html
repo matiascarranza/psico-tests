@@ -1,0 +1,234 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/psico-exercises.css">
+    <script src="js/jquery-1.11.2.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/fabric.min.js"></script>
+  </head>
+
+  <body>
+    <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel"
+         aria-hidden="true" data-backdrop="static" data-keyboard="false">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title" id="infoModalLabel">Finding Bug</h3>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="subjectName">Nombre</label>
+              <input type="text" class="form-control" id="subjectName" placeholder="Nombre Completo">
+              <p class="help-block">Nombre completo de quien va a realizar la prueba.</p>
+            </div>
+            <div class="form-group">
+              <label for="speed">Velocidad</label>
+              <select class="form-control speed" name="speed">
+                <option selected="selected">1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="quantity">Cantidad</label>
+              <select class="form-control quantity" name="quantity">
+                <option>5</option>
+                <option>6</option>
+                <option selected="selected">7</option>
+                <option>8</option>
+                <option>9</option>
+                <option>10</option>
+                <option>11</option>
+                <option>12</option>
+                <option>13</option>
+                <option>14</option>
+                <option>15</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default test" data-dismiss="modal">Prueba</button>
+            <button type="button" class="btn btn-primary start" data-dismiss="modal">Inicio</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel"
+         aria-hidden="true" data-backdrop="static" data-keyboard="false">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title" id="resultModalLabel">Resultado</h3>
+          </div>
+          <div class="modal-body">
+            <p>Intento Nro <span class="attempts"></span> en <span class="time"></span> Segundos</p>
+          </div>
+          <div class="modal-footer poc">
+            <button type="button" class="btn confirm">Corfirmar</button>
+          </div>
+          <div class="modal-footer test">
+            <button type="button" class="btn btn-success next">Seguiente</button>
+            <button type="button" class="btn btn-danger restart">Reintentar</button>
+            <button type="button" class="btn finish">Finalizar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="resultsModal" tabindex="-1" role="dialog" aria-labelledby="resultsModalLabel"
+         aria-hidden="true" data-backdrop="static" data-keyboard="false">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="subjectName"></h3>
+          </div>
+          <div class="modal-body">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Intento</th>
+                  <th>Tiempo</th>
+                  <th>Resultado</th>
+                </tr>
+              </thead>
+              <tbody id="results"></tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3">
+                    <p>Cantidad de Aciertos:  <span id="resultsFooter"/></p>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+            <div class="form-group">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn" data-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="container"></div>
+
+    <script src="finding-bug.js"></script>
+    <script>
+      var findingBug = undefined;
+      var poc = false;
+
+      var callbackTest = function(result) {
+        callback(result);
+        $('#resultModal .poc').show();
+        $('#resultModal .test').hide();
+      };
+
+      var callback = function(result) {
+        $('#resultModal .poc').hide();
+        $('#resultModal .test').show();
+
+        $('#resultModal .modal-header').removeClass('bg-success').removeClass('bg-danger');
+        if(result == 'success') {
+          $('#resultModalLabel').text('ACIERTO');
+          $('#resultModal .modal-header').addClass('bg-success');
+        } else {
+          $('#resultModalLabel').text('FALLO');
+          $('#resultModal .modal-header').addClass('bg-danger');
+        }
+        $('#resultModal').modal('show');
+      };
+
+      var newTest = function() {
+        $('#resultModal').modal('hide');
+        findingBug.newTest(callback);
+      };
+
+      $('#subjectName').on('keypress', function(event) {
+        if(event.keyCode == 13) {
+          $('#infoModal button.start').trigger('click');
+        }
+      });
+
+      $('#infoModal button.start').on('click', function(event) {
+        if(!$('#subjectName').val()) {
+          alert("Debe ingresar un nombre");
+          return false;
+        }
+      });
+
+      $('#infoModal button.test').on('click', function(event) {
+        poc = true;
+      });
+
+      $('#resultModal button.confirm').on('click', function(event) {
+        // TODO: DRY
+        $('#results').empty();
+        $('#subjectName').val('');
+        $('#resultModal').modal('hide');
+        $('#infoModal').modal('show');
+      });
+
+      $('#infoModal').on('hidden.bs.modal', function () {
+        $('.subjectName').text($('#subjectName').val());
+        console.log($(this).find('select.quantity').val());
+        findingBug = new FindingBug({
+          subject: $('#subjectName').val(),
+          speed: $(this).find('select.speed').val(),
+          quantity: $(this).find('select.quantity').val(),
+        });
+        var cb = callback;
+        if(poc) {
+          cb = callbackTest;
+          poc = false;
+        }
+        findingBug.newTest(cb);
+      });
+
+      $('#resultModal').on('show.bs.modal', function () {
+        var numberOfAttempts = findingBug.getResults().length;
+        $(this).find('.attempts').text(numberOfAttempts);
+        $(this).find('.time').text(findingBug.timeLastTest);
+      });
+
+      $('#resultModal .next').on('click', function() {
+        newTest();
+      });
+
+      $('#resultModal .restart').on('click', function() {
+        findingBug.eraseLastResult();
+        newTest();
+      });
+
+      $('#resultModal .finish').on('click', function() {
+        $('#resultModal').modal('hide');
+
+        $('#resultsModal .subjectResults').text(findingBug.getResults());
+        var numberOfSuccesses = findingBug.showResults('results');
+        $('#resultsFooter').text(numberOfSuccesses);
+
+        $('#resultsModal').modal('show');
+      });
+
+      $('#resultsModal').on('keypress', function(event) {
+        if(event.keyCode == 13) {
+          $('#resultsModal').modal('hide');
+        }
+      });
+
+      $('#resultsModal').on('hidden.bs.modal', function () {
+        $('#results').empty();
+        $('#subjectName').val('');
+        $('#infoModal').modal('show');
+      });
+
+      $(function() {
+        $('#infoModal').modal('show');
+      });
+    </script>
+  </body>
+</html>
+
+
