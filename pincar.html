@@ -1,0 +1,138 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/psico-exercises.css">
+    <script src="js/jquery-1.11.2.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/fabric_with_gestures.js"></script>
+  </head>
+
+  <body>
+    <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel"
+         aria-hidden="true" data-backdrop="static" data-keyboard="false">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="infoModalLabel">Pin Car</h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="subjectName">Nombre</label>
+              <input type="text" class="form-control" id="subjectName" placeholder="Nombre Completo">
+              <p class="help-block">Para hacer una demostracion deje el nombre vacio</p>
+            </div>
+            <div class="form-group">
+              <label for="speed">Velocidad</label>
+              <select class="form-control speed" name="speed">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option selected="selected">5</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="speed">Tiempo (segundos)</label>
+              <select class="form-control duration" name="duration">
+                <option>10</option>
+                <option>20</option>
+                <option>30</option>
+                <option>40</option>
+                <option>50</option>
+                <option selected="selected">60</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default test" data-dismiss="modal">Prueba</button>
+            <button type="button" class="btn btn-primary start" data-dismiss="modal">Inicio</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="resultsModal" tabindex="-1" role="dialog" aria-labelledby="resultsModalLabel"
+         aria-hidden="true" data-backdrop="static" data-keyboard="false">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="resultsModalLabel">Resultado</h4>
+          </div>
+          <div class="modal-body">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Choque #</th>
+                  <th>Tiempo</th>
+                </tr>
+              </thead>
+              <tbody id="results"></tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="2">
+                    <p>Cantidad de Choques:  <span id="resultsFooter"/></p>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn" data-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="container"></div>
+    <script src="pincar.js"></script>
+    <script>
+      var pincar = undefined;
+
+      $('#infoModal').on('hidden.bs.modal', function () {
+        $('.subjectName').text($('#subjectName').val());
+        pincar = new PinCar({
+          subject: $('#subjectName').val(),
+          speed: $(this).find('select.speed').val(),
+          duration: $(this).find('select.duration').val(),
+        });
+        pincar.newTest(function() {
+          $('#resultsModalLabel').text($('#subjectName').val());
+          $('#resultsModal').modal('show');
+          $('#resultsModal .subjectResults').text(pincar.getResults());
+          $('#resultsFooter').text(pincar.getResults().length);
+        });
+      })
+
+      $('#resultsModal').on('hidden.bs.modal', function () {
+        $('#results').empty();
+        $('#subjectName').val('');
+        $('#infoModal').modal('show');
+      });
+
+      $('#infoModal button.start').on('click', function(event) {
+        if(!$('#subjectName').val()) {
+          alert("Debe ingresar un nombre");
+          return false;
+        }
+      });
+
+      $('#infoModal').on('keypress', function(event) {
+        if(event.keyCode == 13) {
+          $('#infoModal button.start').trigger('click');
+        }
+      });
+
+      $('#resultsModal').on('keypress', function(event) {
+        if(event.keyCode == 13) {
+          $('#resultsModal').modal('hide');
+        }
+      });
+
+      $(function() {
+        $('#infoModal').modal('show');
+      });
+    </script>
+  </body>
+</html>
+
+
